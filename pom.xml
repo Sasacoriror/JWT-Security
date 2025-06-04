@@ -11,8 +11,8 @@
     <groupId>com.example</groupId>
     <artifactId>JWT_Security</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>JWT_Security</name>
-    <description>JWT_Security</description>
+    <name>Security_JWT</name>
+    <description>Security_JWt</description>
     <url/>
     <licenses>
         <license/>
