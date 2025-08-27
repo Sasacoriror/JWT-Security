@@ -16,24 +16,23 @@ public class StockService {
 
     private final StockRepository stockRepository;
     private final UserRepository userRepository;
+    private final JwtService jwtService;
 
-    public Stock addStock(String email, String ticker, Double price, Integer shares) {
+    public Stock saveStock(String token, Stock stockRequest) {
+        String email = jwtService.extractUsername(token.substring(7)); // remove "Bearer "
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
-        Stock stock = Stock.builder()
-                .ticker(ticker)
-                .price(price)
-                .shares(shares)
-                .user(user)
-                .build();
+        stockRequest.setUser(user);
 
-        return stockRepository.save(stock);
+        return stockRepository.save(stockRequest);
     }
 
-    public List<Stock> getUserStocks(String email) {
+    public List<Stock> getUserStocks(String token) {
+        String email = jwtService.extractUsername(token.substring(7));
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
         return stockRepository.findByUser(user);
     }
 }
