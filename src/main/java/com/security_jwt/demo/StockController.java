@@ -60,4 +60,10 @@ public class StockController {
     ) {
         return ResponseEntity.ok(stockService.getUserStocks(authHeader));
     }
+
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<?> deleteStock(@RequestHeader("Authorization") String auth, @PathVariable("id") Long id) {
+        stockService.delete(auth, id);
+        return ResponseEntity.noContent().build();
+    }
 }
