@@ -1,14 +1,21 @@
 package com.security_jwt.demo;
 
 import com.security_jwt.DTO.StockRequest;
+import com.security_jwt.Link.API_Links;
+import com.security_jwt.service.GetData;
 import com.security_jwt.service.JwtService;
 import com.security_jwt.service.StockService;
+import com.security_jwt.service.addDatabase;
 import com.security_jwt.user.Stock;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/stocks")
@@ -16,27 +23,41 @@ import java.util.List;
 public class StockController {
 
     private final StockService stockService;
-    private final JwtService jwtService;
+
+    private final API_Links apiLinks;
+
+    private final addDatabase addDatabase;
+
+    private final GetData getData;
 
     @PostMapping("/add")
-    public ResponseEntity<Stock> addStock(
+    public ResponseEntity<?> addStock(
             @RequestHeader("Authorization") String authHeader,
-            @RequestBody StockRequest request
+            @Valid @RequestBody Stock stockRequest,
+            BindingResult result
     ) {
-        String token = authHeader.substring(7);
-        String email = jwtService.extractUsername(token);
+        if (result.hasErrors()) {
+            Map<String, String> errors = new HashMap<>();
+            result.getFieldErrors().forEach(err -> errors.put(err.getField(), err.getDefaultMessage()));
+            return ResponseEntity.badRequest().body(errors);
+        }
 
-        Stock stock = stockService.addStock(email, request.getTicker(), request.getPrice(), request.getShares());
-        return ResponseEntity.ok(stock);
+        String stockName = stockRequest.getStockTicker().toUpperCase();
+        apiLinks.setFinancialAPI(stockName, 1);
+
+        getData.getFinancialData();
+
+
+        Stock savedStock = stockService.saveStock(authHeader, stockRequest);
+        addDatabase.addToDatabase(savedStock.getId());
+
+        return ResponseEntity.ok(savedStock);
     }
 
     @GetMapping
-    public ResponseEntity<List<Stock>> getUserStocks(
+    public ResponseEntity<?> getUserStocks(
             @RequestHeader("Authorization") String authHeader
     ) {
-        String token = authHeader.substring(7);
-        String email = jwtService.extractUsername(token);
-
-        return ResponseEntity.ok(stockService.getUserStocks(email));
+        return ResponseEntity.ok(stockService.getUserStocks(authHeader));
     }
 }
