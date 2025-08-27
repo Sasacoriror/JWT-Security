@@ -9,6 +9,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -34,6 +36,30 @@ public class StockService {
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
         return stockRepository.findByUser(user);
+    }
+
+    public void updateStock(String token, Long Id, Map<String, Integer> data) {
+        String email = jwtService.extractUsername(token.substring(7));
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        Stock stock = stockRepository.findById(Id)
+                .orElseThrow(() -> new RuntimeException("Stock not found"));
+
+        if (stock.getUser().getId() != user.getId()) {
+            throw new RuntimeException("Stock doesn't belong to user");
+        }
+
+        if (data.containsKey("priceInn")){
+            stock.setStockPrice(data.get("priceInn"));
+        }
+
+        if (data.containsKey("numberOfShares")){
+            stock.setStockQuantity(data.get("numberOfShares"));
+        }
+
+        stockRepository.save(stock);
     }
 
     public void delete(String token, Long Id) {

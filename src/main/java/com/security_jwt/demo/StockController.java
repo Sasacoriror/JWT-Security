@@ -7,6 +7,7 @@ import com.security_jwt.service.JwtService;
 import com.security_jwt.service.StockService;
 import com.security_jwt.service.addDatabase;
 import com.security_jwt.user.Stock;
+import com.security_jwt.user.StockRepository;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/v1/stocks")
@@ -29,6 +31,8 @@ public class StockController {
     private final addDatabase addDatabase;
 
     private final GetData getData;
+
+    private final StockRepository stockRepository;
 
     @PostMapping("/add")
     public ResponseEntity<?> addStock(
@@ -62,8 +66,31 @@ public class StockController {
     }
 
     @DeleteMapping("/delete/{id}")
-    public ResponseEntity<?> deleteStock(@RequestHeader("Authorization") String auth, @PathVariable("id") Long id) {
+    public ResponseEntity<String> deleteStock(@RequestHeader("Authorization") String auth, @PathVariable("id") Long id) {
         stockService.delete(auth, id);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok("Deleted");
+    }
+
+    @PutMapping("/updateData/{id}")
+    public ResponseEntity<String> updateStock(@RequestHeader("Authorization") String auth, @PathVariable("id") Long Id,
+                                         @Valid @RequestBody Map<String, Integer> data){
+
+        stockService.updateStock(auth, Id, data);
+
+        Optional<Stock> stocks = stockRepository.findById(Id);
+
+        Stock stocks1 = stocks.get();
+
+        if (data.containsKey("priceInn")){
+            stocks1.setStockPrice(data.get("priceInn"));
+        }
+
+        if (data.containsKey("numberOfShares")){
+            stocks1.setStockQuantity(data.get("numberOfShares"));
+        }
+
+        stockRepository.save(stocks1);
+
+        return ResponseEntity.ok("DONE, portfolio updated");
     }
 }
