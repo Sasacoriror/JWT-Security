@@ -26,6 +26,6 @@ public class addDatabase {
 
         portfolio.get().setStockName(stockName);
 
-        //stockRepository.save(portfolio.get());
+        stockRepository.save(portfolio.get());
     }
 }
