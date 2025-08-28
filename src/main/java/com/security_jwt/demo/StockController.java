@@ -1,5 +1,6 @@
 package com.security_jwt.demo;
 
+import com.security_jwt.DTO.RF_DTO;
 import com.security_jwt.DTO.StockRequest;
 import com.security_jwt.Link.API_Links;
 import com.security_jwt.service.GetData;
@@ -65,6 +66,16 @@ public class StockController {
         return ResponseEntity.ok(stockService.getUserStocks(authHeader));
     }
 
+    @GetMapping("searchFinancialData/{ticker}")
+    public RF_DTO searchFinancialData(@RequestHeader("Authorization") String auth, @PathVariable("ticker") String ticker){
+
+        stockService.VerifyUser(auth);
+
+        String tickerStr = ticker.toUpperCase();
+        apiLinks.setFinancialAPI(tickerStr, 1);
+        return getData.getFinancialData();
+    }
+
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<String> deleteStock(@RequestHeader("Authorization") String auth, @PathVariable("id") Long id) {
         stockService.delete(auth, id);
@@ -76,20 +87,6 @@ public class StockController {
                                          @Valid @RequestBody Map<String, Integer> data){
 
         stockService.updateStock(auth, Id, data);
-
-        Optional<Stock> stocks = stockRepository.findById(Id);
-
-        Stock stocks1 = stocks.get();
-
-        if (data.containsKey("priceInn")){
-            stocks1.setStockPrice(data.get("priceInn"));
-        }
-
-        if (data.containsKey("numberOfShares")){
-            stocks1.setStockQuantity(data.get("numberOfShares"));
-        }
-
-        stockRepository.save(stocks1);
 
         return ResponseEntity.ok("DONE, portfolio updated");
     }

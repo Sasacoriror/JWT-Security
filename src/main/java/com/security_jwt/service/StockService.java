@@ -38,6 +38,12 @@ public class StockService {
         return stockRepository.findByUser(user);
     }
 
+    public User VerifyUser(String token) {
+        String email = jwtService.extractUsername(token.substring(7));
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+    }
+
     public void updateStock(String token, Long Id, Map<String, Integer> data) {
         String email = jwtService.extractUsername(token.substring(7));
 
@@ -61,6 +67,8 @@ public class StockService {
 
         stockRepository.save(stock);
     }
+
+
 
     public void delete(String token, Long Id) {
         String email = jwtService.extractUsername(token.substring(7));
